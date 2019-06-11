@@ -7,15 +7,42 @@
 //
 
 import UIKit
+import WeakCollection
+
+
+protocol AppDelegateStatus: AnyObject {
+    func didLoad()
+    
+}
+
+final class AppDelegateStatusProxy {
+    var delegate: AppDelegateStatus
+    
+    init(delegate: AppDelegateStatus) {
+        self.delegate = delegate
+    }
+}
+
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
-
+    
+    var delegates = WeakCollection<AppDelegateStatus>()
+    
+    var listener = Listener()
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        delegates.add(self.listener)
+        delegates.execute { (delegate:AppDelegateStatus) in
+            delegate.didLoad()
+        }
+        delegates.remove(delegate: self.listener)
+        delegates.execute { (delegate:AppDelegateStatus) in
+            delegate.didLoad()
+        }
         return true
     }
 
